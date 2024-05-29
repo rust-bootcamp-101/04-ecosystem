@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
     let layer = Layer::new().with_filter(LevelFilter::INFO);
     tracing_subscriber::registry().with(layer).init();
 
-    let postgres_uri = "postgres://liangchuan:postgres@localhost:5432/shortener";
+    let postgres_uri = "postgres://postgres:postgres@localhost:5432/shortener";
     let state = AppState::try_new(postgres_uri).await?;
     info!("Connected to database: {postgres_uri}");
     let state = Arc::new(state);
@@ -61,6 +61,10 @@ impl AppState {
 
     async fn shorten(&self, url: &str) -> Result<String> {
         let id = nanoid!(6);
+        // sql 解释
+        // url 字段是 unique 限制的
+        // 当有重复的url的时候，就把它自己更新为自己(自己给自己赋值)
+        // 然后返回原有的数据(保证幂等性)
         let ret: UrlRecord = sqlx::query_as(
             "INSERT INTO urls (id, url) VALUES ($1, $2) ON CONFLICT(url) DO UPDATE SET url=EXCLUDED.url RETURNING *",
         )
