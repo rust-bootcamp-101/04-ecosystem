@@ -6,6 +6,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use axum_macros::debug_handler;
 use nanoid::nanoid;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -131,7 +132,10 @@ struct UrlRecord {
     url: String,
 }
 
-// 注意: extract 中，state 必须放第一位
+// 注意: extract 中，Body只会被消费一次，所以必须放最后面
+// 因为Json是实现了FromRequest，而其他的参数如header，method，path则实现了FromRequestPart，
+// 它们是可以被取多次的
+#[debug_handler] // 使用 debug_handler 检查handler函数的错误
 async fn shorten(
     State(state): State<Arc<AppState>>,
     Json(data): Json<ShortenReq>,

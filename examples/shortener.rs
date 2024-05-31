@@ -103,7 +103,7 @@ struct UrlRecord {
     url: String,
 }
 
-// 注意: extract 中，state 必须放第一位
+// 注意: extract 中，Body只会被消费一次，所以必须放最后面
 async fn shorten(
     State(state): State<Arc<AppState>>,
     Json(data): Json<ShortenReq>,
